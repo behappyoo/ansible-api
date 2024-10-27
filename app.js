@@ -3,7 +3,6 @@ const bodyParser = require('body-parser');
 const { exec } = require('child_process');
 const fs = require('fs');
 const app = express();
-const port = 3000;
 
 app.use(bodyParser.json());
 
@@ -81,3 +80,7 @@ app.post('/ansible/api', (req, res) => {
       });
     });
   });
+
+  app.listen(3000, () => {
+    console.log('Server running on http://localhost');
+});
