@@ -1,0 +1,51 @@
+- name: Configure new EC2 instance
+  hosts: api_servers
+  become: yes
+  vars:
+    username: api_user
+    app_directory: /home/{{ username }}/sampleapp_api
+    git_repo: "https://github.com/yourusername/your-repo.git"  
+  vars_files:
+    - vault.yml  
+  tasks:
+    - name: Create a new user
+      user:
+        name: "{{ username }}"
+        password: "{{ 'your_password' | password_hash('sha512') }}"
+        shell: /bin/bash
+        state: present
+
+    - name: Change root password
+      command: echo "root:{{ root_password }}" | chpasswd
+
+    - name: Switch to api_user and perform tasks
+      become_user: api_user  # 여기서 api_user로 전환
+
+      block:  # 블록 내의 모든 태스크는 api_user로 수행
+        - name: Create sampleapp_api directory  # sampleapp 디렉토리를 생성합니다.
+          file:
+            path: "{{ app_directory }}"
+            state: directory
+            owner: "{{ username }}"
+            group: "{{ username }}"
+            mode: '0755'
+
+        - name: Clone the API server code from GitHub  # GitHub에서 코드를 클론합니다.
+          git:
+            repo: "{{ git_repo }}"
+            dest: "{{ app_directory }}"
+            version: master  # 필요한 브랜치를 지정
+            force: yes       # 이미 클론된 경우, 강제로 업데이트
+
+        - name: Install npm dependencies
+          command: npm install
+          args:
+            chdir: "{{ app_directory }}"  # app_directory에서 명령어 실행   
+        
+        - name: Start the server
+          command: node index.js
+          args:
+            chdir: "{{ app_directory }}"  # 서버 디렉토리에서 실행
+
+    - name: Remove sudo privileges from ec2-user
+      command: deluser ec2-user sudo
