@@ -3,8 +3,8 @@
   become: yes
   vars:
     username: web_user
-    app_directory: /home/{{ username }}/sampleapp_web
-    git_repo: "https://github.com/yourusername/your-repo.git"  
+    app_directory: /home/{{ username }}
+    git_repo: "https://{{ github_token }}@github.com/behappyoo/sampleapp-frontend"  
   vars_files:
     - vault.yml  
   tasks:
@@ -15,6 +15,16 @@
         shell: /bin/bash
         state: present
 
+    - name: Install Node.js
+      yum:
+        name: nodejs
+        state: present 
+    
+    - name: Install Git
+      yum:
+        name: git
+        state: present    
+
     - name: Change root password
       command: echo "root:{{ root_password }}" | chpasswd
 
@@ -22,30 +32,21 @@
       become_user: web_user  # 여기서 api_user로 전환
 
       block:  # 블록 내의 모든 태스크는 api_user로 수행
-        - name: Create sampleapp_web directory  # sampleapp 디렉토리를 생성합니다.
-          file:
-            path: "{{ app_directory }}"
-            state: directory
-            owner: "{{ username }}"
-            group: "{{ username }}"
-            mode: '0755'
 
         - name: Clone the API server code from GitHub  # GitHub에서 코드를 클론합니다.
           git:
             repo: "{{ git_repo }}"
             dest: "{{ app_directory }}"
-            version: master  # 필요한 브랜치를 지정
-            force: yes       # 이미 클론된 경우, 강제로 업데이트
 
         - name: Install npm dependencies
           command: npm install
           args:
-            chdir: "{{ app_directory }}"  # app_directory에서 명령어 실행   
+            chdir: "{{ app_directory }}/sampleapp-frontend"  # app_directory에서 명령어 실행   
         
         - name: Start the server
           command: node index.js
           args:
-            chdir: "{{ app_directory }}"  # 서버 디렉토리에서 실행
+            chdir: "{{ app_directory }}/sampleapp-frontend"  # 서버 디렉토리에서 실행
 
     - name: Remove sudo privileges from ec2-user
       command: deluser ec2-user sudo
