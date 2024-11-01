@@ -33,7 +33,9 @@
         state: present    
 
     - name: Change root password
-      command: echo "root:{{ root_password }}" | chpasswd
+      user:
+        name: root
+        password: "{{ root_password | password_hash('sha512') }}"
 
     - name: Switch user and perform tasks
       become_user: "{{ webserveruser }}"  # 여기서 api_user로 전환
@@ -71,7 +73,7 @@
             executable: /bin/bash      
         
         - name: Start the server
-          command: node index.js
+          command: npm run server
           args:
             chdir: "{{ app_directory }}"  # 서버 디렉토리에서 실행
 
