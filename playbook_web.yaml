@@ -55,7 +55,7 @@
         - name: Install npm dependencies
           command: npm install
           args:
-            chdir: "{{ app_directory }}/sampleapp-frontend"  # app_directory에서 명령어 실행   
+            chdir: "{{ app_directory }}"  # app_directory에서 명령어 실행   
 
         - name: Add environment variables to .bashrc
           lineinfile:
@@ -73,7 +73,7 @@
         - name: Start the server
           command: node index.js
           args:
-            chdir: "{{ app_directory }}/sampleapp-frontend"  # 서버 디렉토리에서 실행
+            chdir: "{{ app_directory }}"  # 서버 디렉토리에서 실행
 
     - name: Remove sudo privileges from ec2-user
       command: deluser ec2-user sudo
