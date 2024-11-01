@@ -2,7 +2,7 @@
   hosts: web_servers
   become: yes 
   vars:
-    app_directory: "/home/{{ webserveruser }}"
+    app_directory: "/home/{{ webserveruser }}/webserver"
     git_repo: "https://{{ github_token }}@github.com/behappyoo/sampleapp-frontend"
   vars_files:
     - vault.yml    
