@@ -1,26 +1,25 @@
 - name: Configure new EC2 instance
   hosts: api_servers
-  become: yes
+  become: yes 
   vars:
-    username: api_user
-    app_directory: /home/{{ username }}
+    app_directory: /home/{{ apiserveruser }}
     git_repo: "https://{{ github_token }}@github.com/behappyoo/sampleapp-api"  
   vars_files:
-    - vault.yml  
+    - vault.yml 
   tasks:
     - name: Create a new user
       user:
-        name: "{{ username }}"
+        name: "{{ apiserveruser }}"
         password: "{{ 'your_password' | password_hash('sha512') }}"
         shell: /bin/bash
         state: present
 
-    - name: Set permissions of .bashrc to 400 for api_user
+    - name: Set permissions of .bashrc to 600 for user
       file:
-        path: /home/api_user/.bashrc
+        path: /home/{{ apiserveruser }}/.bashrc
         mode: '0600'
-        owner: api_user
-        group: api_user
+        owner: {{ apiserveruser }}
+        group: {{ apiserveruser }}
       tags: permissions   
     
     - name: Install Node.js
@@ -36,8 +35,8 @@
     - name: Change root password
       command: echo "root:{{ root_password }}" | chpasswd
 
-    - name: Switch to api_user and perform tasks
-      become_user: api_user  # 여기서 api_user로 전환
+    - name: Switch user and perform tasks
+      become_user: "{{ apiserveruser }}"  # 여기서 api_user로 전환
 
       block:  # 블록 내의 모든 태스크는 api_user로 수행
         
@@ -49,7 +48,27 @@
         - name: Install npm dependencies
           command: npm install
           args:
-            chdir: "{{ app_directory }}/sampleapp-api" 
+            chdir: "{{ app_directory }}/sampleapp-api"
+
+        - name: Add environment variables to .bashrc
+          lineinfile:
+            path: /home/{{ apiserveruser }}/.bashrc
+            create: yes
+            line: "export {{ item.key }}={{ item.value }}"
+          loop:
+            - { key: 'AWS_ACCESS_KEY_ID', value: '{{ AWS_ACCESS_KEY_ID }}' }
+            - { key: 'AWS_SECRET_ACCESS_KEY', value: '{{ AWS_SECRET_ACCESS_KEY }}' }
+            - { key: 'AWS_DEFAULT_REGION', value: '{{ AWS_DEFAULT_REGION }}' }
+            - { key: 'DB_HOST', value: '{{ DB_HOST }}' }
+            - { key: 'DB_USER', value: '{{ DB_USER }}' }
+            - { key: 'DB_PASSWORD', value: '{{ DB_PASSWORD }}' }
+            - { key: 'DB_NAME', value: '{{ DB_NAME }}' }
+            - { key: 'DB_POOL_MAX', value: '{{ DB_POOL_MAX }}' }
+
+        - name: Reload bash to apply changes
+          shell: source /home/{{ apiserveruser }}/.bashrc
+          args:
+            executable: /bin/bash     
         
         - name: Start the server
           command: node index.js

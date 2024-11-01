@@ -1,19 +1,26 @@
 - name: Configure new EC2 instance
   hosts: web_servers
-  become: yes
+  become: yes 
   vars:
-    username: web_user
-    app_directory: /home/{{ username }}
-    git_repo: "https://{{ github_token }}@github.com/behappyoo/sampleapp-frontend"  
+    app_directory: /home/{{ webserveruser }}
+    git_repo: "https://{{ github_token }}@github.com/behappyoo/sampleapp-frontend"
   vars_files:
-    - vault.yml  
+    - vault.yml    
   tasks:
     - name: Create a new user
       user:
-        name: "{{ username }}"
+        name: "{{ webserveruser }}"
         password: "{{ 'your_password' | password_hash('sha512') }}"
         shell: /bin/bash
         state: present
+
+    - name: Set permissions of .bashrc to 600 for user
+      file:
+        path: /home/{{ webserveruser }}/.bashrc
+        mode: '0600'
+        owner: {{ webserveruser }}
+        group: {{ webserveruser }}
+      tags: permissions    
 
     - name: Install Node.js
       yum:
@@ -28,8 +35,8 @@
     - name: Change root password
       command: echo "root:{{ root_password }}" | chpasswd
 
-    - name: Switch to web_user and perform tasks
-      become_user: web_user  # 여기서 api_user로 전환
+    - name: Switch user and perform tasks
+      become_user: "{{ webserveruser }}"  # 여기서 api_user로 전환
 
       block:  # 블록 내의 모든 태스크는 api_user로 수행
 
@@ -42,6 +49,19 @@
           command: npm install
           args:
             chdir: "{{ app_directory }}/sampleapp-frontend"  # app_directory에서 명령어 실행   
+
+        - name: Add environment variables to .bashrc
+          lineinfile:
+            path: /home/{{ webserveruser }}/.bashrc
+            create: yes
+            line: "export {{ item.key }}={{ item.value }}"
+          loop:
+            - { key: 'VUE_APP_API_URL', value: '{{ VUE_APP_API_URL }}' }
+
+        - name: Reload bash to apply changes
+          shell: source /home/{{ webserveruser }}/.bashrc
+          args:
+            executable: /bin/bash      
         
         - name: Start the server
           command: node index.js
