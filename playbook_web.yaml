@@ -2,7 +2,7 @@
   hosts: web_servers
   become: yes 
   vars:
-    app_directory: /home/{{ webserveruser }}
+    app_directory: "/home/{{ webserveruser }}"
     git_repo: "https://{{ github_token }}@github.com/behappyoo/sampleapp-frontend"
   vars_files:
     - vault.yml    
@@ -16,10 +16,10 @@
 
     - name: Set permissions of .bashrc to 600 for user
       file:
-        path: /home/{{ webserveruser }}/.bashrc
+        path: "/home/{{ webserveruser }}/.bashrc"
         mode: '0600'
-        owner: {{ webserveruser }}
-        group: {{ webserveruser }}
+        owner: "{{ webserveruser }}"
+        group: "{{ webserveruser }}"
       tags: permissions    
 
     - name: Install Node.js
@@ -52,7 +52,7 @@
 
         - name: Add environment variables to .bashrc
           lineinfile:
-            path: /home/{{ webserveruser }}/.bashrc
+            path: "/home/{{ webserveruser }}/.bashrc"
             create: yes
             line: "export {{ item.key }}={{ item.value }}"
           loop:
