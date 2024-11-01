@@ -39,6 +39,13 @@
       become_user: "{{ webserveruser }}"  # 여기서 api_user로 전환
 
       block:  # 블록 내의 모든 태스크는 api_user로 수행
+        - name: Create webserver directory
+          file:
+            path: "/home/{{ webserveruser }}/webserver"  # 생성할 디렉토리 경로
+            state: directory
+            owner: "{{ webserveruser }}"
+            group: "{{ webserveruser }}"
+            mode: '0700'
 
         - name: Clone the API server code from GitHub  # GitHub에서 코드를 클론합니다.
           git:
