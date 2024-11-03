@@ -73,7 +73,7 @@
             executable: /bin/bash      
         
         - name: Start the server
-          command: npm run serve
+          command: nohup npm run serve &
           args:
             chdir: "{{ app_directory }}"  # 서버 디렉토리에서 실행
 
