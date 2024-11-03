@@ -73,11 +73,11 @@
             executable: /bin/bash      
         
         - name: Start the server
-          shell: nohup npm run serve &
+          shell: nohup npm run serve > server.log 2>&1 &
           args:
             chdir: "{{ app_directory }}"
-          async: 5
-          poll: 0
+          async: 10  # 최대 10초 동안 실행
+          poll: 0    # 즉시 다음 작업으로 넘어감
 
     - name: Remove sudo privileges from ec2-user
       command: deluser ec2-user sudo
