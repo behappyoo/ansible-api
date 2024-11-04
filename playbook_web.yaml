@@ -9,7 +9,7 @@
   tasks:
     - name: Create a new user
       user:
-        name: "{{ webserveruser }}"
+        name: "{{ webserveruser }}" #vault
         password: "{{ 'your_password' | password_hash('sha512') }}"
         shell: /bin/bash
         state: present
@@ -38,9 +38,9 @@
         password: "{{ root_password | password_hash('sha512') }}"
 
     - name: Switch user and perform tasks
-      become_user: "{{ webserveruser }}"  # 여기서 api_user로 전환
+      become_user: "{{ webserveruser }}"
 
-      block:  # 블록 내의 모든 태스크는 api_user로 수행
+      block:
         - name: Create webserver directory
           file:
             path: "/home/{{ webserveruser }}/webserver"  # 생성할 디렉토리 경로

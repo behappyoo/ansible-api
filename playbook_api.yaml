@@ -2,24 +2,24 @@
   hosts: api_servers
   become: yes 
   vars:
-    app_directory: /home/{{ apiserveruser }}
+    app_directory: "/home/{{ apiserveruser }}/apiserver"
     git_repo: "https://{{ github_token }}@github.com/behappyoo/sampleapp-api"  
   vars_files:
     - vault.yml 
   tasks:
     - name: Create a new user
       user:
-        name: "{{ apiserveruser }}"
+        name: "{{ apiserveruser }}" #vault
         password: "{{ 'your_password' | password_hash('sha512') }}"
         shell: /bin/bash
         state: present
 
     - name: Set permissions of .bashrc to 600 for user
       file:
-        path: /home/{{ apiserveruser }}/.bashrc
+        path: "/home/{{ apiserveruser }}/.bashrc"
         mode: '0600'
-        owner: {{ apiserveruser }}
-        group: {{ apiserveruser }}
+        owner: "{{ apiserveruser }}"
+        group: "{{ apiserveruser }}"
       tags: permissions   
     
     - name: Install Node.js
@@ -33,12 +33,22 @@
         state: present
 
     - name: Change root password
-      command: echo "root:{{ root_password }}" | chpasswd
+      user:
+        name: root
+        password: "{{ root_password | password_hash('sha512') }}"
 
     - name: Switch user and perform tasks
-      become_user: "{{ apiserveruser }}"  # 여기서 api_user로 전환
+      become_user: "{{ apiserveruser }}"
 
-      block:  # 블록 내의 모든 태스크는 api_user로 수행
+      block:
+
+        - name: Create apiserver directory
+          file:
+            path: "{{ app_directory }}"  # 생성할 디렉토리 경로
+            state: directory
+            owner: "{{ apiserveruser }}"
+            group: "{{ apiserveruser }}"
+            mode: '0700'      
         
         - name: Clone the API server code from GitHub  # GitHub에서 코드를 클론합니다.
           git:
@@ -48,7 +58,7 @@
         - name: Install npm dependencies
           command: npm install
           args:
-            chdir: "{{ app_directory }}/sampleapp-api"
+            chdir: "{{ app_directory }}"
 
         - name: Add environment variables to .bashrc
           lineinfile:
@@ -71,9 +81,11 @@
             executable: /bin/bash     
         
         - name: Start the server
-          command: node index.js
+          shell: nohup npm run serve > server.log 2>&1 &
           args:
-            chdir: "{{ app_directory }}/sampleapp-api"  # 서버 디렉토리에서 실행
+            chdir: "{{ app_directory }}"
+          async: 10  # 최대 10초 동안 실행
+          poll: 0    # 즉시 다음 작업으로 넘어감
 
     - name: Remove sudo privileges from ec2-user
       command: deluser ec2-user sudo
