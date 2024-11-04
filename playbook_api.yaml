@@ -81,7 +81,7 @@
             executable: /bin/bash     
         
         - name: Start the server
-          shell: nohup npm run serve > server.log 2>&1 &
+          shell: nohup node index.js > server.log 2>&1 &
           args:
             chdir: "{{ app_directory }}"
           async: 10  # 최대 10초 동안 실행
