@@ -59,18 +59,25 @@
           args:
             chdir: "{{ app_directory }}"  # app_directory에서 명령어 실행   
 
-        - name: Add environment variables to .bashrc
-          lineinfile:
-            path: "/home/{{ webserveruser }}/.bashrc"
-            create: yes
-            line: "export {{ item.key }}={{ item.value }}"
-          loop:
-            - { key: 'VUE_APP_API_URL', value: '{{ VUE_APP_API_URL }}' }
+        - name: Create .env file in project directory
+          ansible.builtin.copy:
+            dest: "{{ app_directory }}/.env"
+            content: |
+              VUE_APP_API_URL='{{ VUE_APP_API_URL }}'
+            mode: '0600'    
 
-        - name: Reload bash to apply changes
-          shell: source /home/{{ webserveruser }}/.bashrc
-          args:
-            executable: /bin/bash      
+        #- name: Add environment variables to .bashrc
+        #  lineinfile:
+        #    path: "/home/{{ webserveruser }}/.bashrc"
+        #    create: yes
+        #    line: "export {{ item.key }}={{ item.value }}"
+        #  loop:
+        #    - { key: 'VUE_APP_API_URL', value: '{{ VUE_APP_API_URL }}' }
+
+        #- name: Reload bash to apply changes
+        #  shell: source /home/{{ webserveruser }}/.bashrc
+        #  args:
+        #    executable: /bin/bash      
         
         - name: Start the server
           shell: nohup npm run serve > server.log 2>&1 &

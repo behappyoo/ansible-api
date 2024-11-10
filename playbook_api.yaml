@@ -72,7 +72,7 @@
               DB_PASSWORD='{{ DB_PASSWORD }}'
               DB_NAME='{{ DB_NAME }}'
               DB_POOL_MAX='{{ DB_POOL_MAX }}'
-          mode: '0600'
+            mode: '0600'
 
         #- name: Add environment variables to .bashrc
         #  lineinfile:
