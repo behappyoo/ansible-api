@@ -60,25 +60,39 @@
           args:
             chdir: "{{ app_directory }}"
 
-        - name: Add environment variables to .bashrc
-          lineinfile:
-            path: /home/{{ apiserveruser }}/.bashrc
-            create: yes
-            line: "export {{ item.key }}={{ item.value }}"
-          loop:
-            - { key: 'AWS_ACCESS_KEY_ID', value: '{{ AWS_ACCESS_KEY_ID }}' }
-            - { key: 'AWS_SECRET_ACCESS_KEY', value: '{{ AWS_SECRET_ACCESS_KEY }}' }
-            - { key: 'AWS_DEFAULT_REGION', value: '{{ AWS_DEFAULT_REGION }}' }
-            - { key: 'DB_HOST', value: '{{ DB_HOST }}' }
-            - { key: 'DB_USER', value: '{{ DB_USER }}' }
-            - { key: 'DB_PASSWORD', value: '{{ DB_PASSWORD }}' }
-            - { key: 'DB_NAME', value: '{{ DB_NAME }}' }
-            - { key: 'DB_POOL_MAX', value: '{{ DB_POOL_MAX }}' }
+        - name: Create .env file in project directory
+          ansible.builtin.copy:
+            dest: "{{ app_directory }}/.env"
+            content: |
+              AWS_ACCESS_KEY_ID='{{ AWS_ACCESS_KEY_ID }}'
+              AWS_SECRET_ACCESS_KEY='{{ AWS_SECRET_ACCESS_KEY }}'
+              AWS_DEFAULT_REGION='{{ AWS_DEFAULT_REGION }}'
+              DB_HOST='{{ DB_HOST }}'
+              DB_USER='{{ DB_USER }}'
+              DB_PASSWORD='{{ DB_PASSWORD }}'
+              DB_NAME='{{ DB_NAME }}'
+              DB_POOL_MAX='{{ DB_POOL_MAX }}'
+          mode: '0600'
 
-        - name: Reload bash to apply changes
-          shell: source /home/{{ apiserveruser }}/.bashrc
-          args:
-            executable: /bin/bash     
+        #- name: Add environment variables to .bashrc
+        #  lineinfile:
+        #    path: /home/{{ apiserveruser }}/.bashrc
+        #    create: yes
+        #    line: "export {{ item.key }}={{ item.value }}"
+        #  loop:
+        #    - { key: 'AWS_ACCESS_KEY_ID', value: '{{ AWS_ACCESS_KEY_ID }}' }
+        #    - { key: 'AWS_SECRET_ACCESS_KEY', value: '{{ AWS_SECRET_ACCESS_KEY }}' }
+        #    - { key: 'AWS_DEFAULT_REGION', value: '{{ AWS_DEFAULT_REGION }}' }
+        #    - { key: 'DB_HOST', value: '{{ DB_HOST }}' }
+        #    - { key: 'DB_USER', value: '{{ DB_USER }}' }
+        #    - { key: 'DB_PASSWORD', value: '{{ DB_PASSWORD }}' }
+        #    - { key: 'DB_NAME', value: '{{ DB_NAME }}' }
+        #    - { key: 'DB_POOL_MAX', value: '{{ DB_POOL_MAX }}' }
+
+        #- name: Reload bash to apply changes
+        #  shell: source /home/{{ apiserveruser }}/.bashrc
+        #  args:
+        #    executable: /bin/bash     
         
         - name: Start the server
           shell: nohup node index.js > server.log 2>&1 &
