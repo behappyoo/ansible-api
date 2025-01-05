@@ -1,5 +1,6 @@
 - name: Configure new EC2 instance
-  hosts: api_servers
+  hosts: Scaling-Group-API
+  remote_user: ec2-user
   become: yes 
   vars:
     app_directory: "/home/{{ apiserveruser }}/apiserver"
@@ -10,7 +11,7 @@
     - name: Create a new user
       user:
         name: "{{ apiserveruser }}" #vault
-        password: "{{ 'your_password' | password_hash('sha512') }}"
+        password: "{{ 'apiserveruser_password' | password_hash('sha512') }}"
         shell: /bin/bash
         state: present
 
