@@ -67,7 +67,7 @@ def run_playbook():
     playbook_path = f'/etc/ansible/playbook_{group_name}.yaml'
     ssh_key = os.environ.get("ANSIBLE_SSH_KEY")
     vault_password = os.environ.get("VAULT_PASSWORD")
-    command = ['ansible-playbook', '-i', inventory_path, playbook_path, '--private-key', ssh_key, '--vault-password', vault_password]
+    command = ['ansible-playbook', '-i', inventory_path, playbook_path, '--private-key', ssh_key, '--vault-password-file', f'<(echo "{vault_password}")']
 
     try:
         result = subprocess.run(command, capture_output=True, text=True)
