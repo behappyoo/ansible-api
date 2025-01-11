@@ -68,7 +68,7 @@ def run_playbook():
     playbook_path = f'/etc/ansible/playbook_{group_name}.yaml'
     ssh_key = os.environ.get("ANSIBLE_SSH_KEY")
     vault_password_file = os.environ.get("VAULT_PASSWORD_FILE")
-    command = ['ansible-playbook', '-i', inventory_path, playbook_path, '--private-key', ssh_key, '--vault-password-file', vault_password_file]
+    command = ['ansible-playbook', '-i', inventory_path, playbook_path, '--private-key', ssh_key, '--vault-password-file', vault_password_file, '--ssh-extra-args', '-o StrictHostKeyChecking=no']
 
     # 로그 파일 경로
     log_file_path = '/etc/ansible/inventory.log'
