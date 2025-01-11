@@ -2,6 +2,7 @@ import boto3
 import json
 import subprocess
 import os
+import datetime
 from flask import Flask, request, jsonify
 
 # AWS 리전 설정
@@ -69,14 +70,32 @@ def run_playbook():
     vault_password_file = os.environ.get("VAULT_PASSWORD_FILE")
     command = ['ansible-playbook', '-i', inventory_path, playbook_path, '--private-key', ssh_key, '--vault-password-file', vault_password_file]
 
+    # 로그 파일 경로
+    log_file_path = '/etc/ansible/inventory.log'
+
     try:
         result = subprocess.run(command, capture_output=True, text=True)
         if result.returncode == 0:
             return jsonify({"message": "Playbook executed successfully", "output": result.stdout}), 200
         else:
+            # 오류 메시지 로그 파일에 기록
+            with open(log_file_path, 'a') as log_file:
+                log_file.write(f"{datetime.datetime.now()} - ERROR - Playbook execution failed: {result.stderr}\n")
             return jsonify({"error": "Playbook execution failed", "details": result.stderr}), 500
     except Exception as e:
+        # 예외 메시지 로그 파일에 기록
+        with open(log_file_path, 'a') as log_file:
+            log_file.write(f"{datetime.datetime.now()} - ERROR - An error occurred: {str(e)}\n")
         return jsonify({"error": str(e)}), 500
+
+    #try:
+    #    result = subprocess.run(command, capture_output=True, text=True)
+    #    if result.returncode == 0:
+    #        return jsonify({"message": "Playbook executed successfully", "output": result.stdout}), 200
+    #    else:
+    #        return jsonify({"error": "Playbook execution failed", "details": result.stderr}), 500
+    #except Exception as e:
+    #    return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
