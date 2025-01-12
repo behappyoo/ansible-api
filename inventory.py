@@ -2,7 +2,7 @@ import boto3
 import json
 import subprocess
 import os
-import datetime
+from datetime import datetime, timezone
 from flask import Flask, request, jsonify
 
 # AWS 리전 설정
@@ -29,14 +29,19 @@ def get_autoscaling_instances_by_group(group_name):
             }
         }
 
+        time_threshold = datetime.now(timezone.utc)- datetime.timedelta(minutes=5)
+
         for reservation in as_instances['Reservations']:
             for instance in reservation['Instances']:
-                private_ip = instance.get('PrivateIpAddress')
-                if private_ip:
-                    inventory[group_name]["hosts"][private_ip] = {}
-                    inventory["_meta"]["hostvars"][private_ip] = {
-                        "ansible_host": private_ip
-                    }
+                # LaunchTime 가져오기
+                launch_time = instance.get('LaunchTime')
+                if launch_time and launch_time > time_threshold:
+                    private_ip = instance.get('PrivateIpAddress')
+                    if private_ip:
+                        inventory[group_name]["hosts"][private_ip] = {}
+                        inventory["_meta"]["hostvars"][private_ip] = {
+                            "ansible_host": private_ip
+                        }
 
         # 디버깅 출력: 변환된 결과 확인
         print("Generated inventory:", json.dumps(inventory, indent=2))            
