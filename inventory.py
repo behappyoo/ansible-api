@@ -30,7 +30,7 @@ def get_autoscaling_instances_by_group(group_name):
         }
 
         time_threshold = datetime.now(timezone.utc)- timedelta(minutes=5)
-        
+
         for reservation in as_instances['Reservations']:
             for instance in reservation['Instances']:
                 # LaunchTime 가져오기
@@ -96,12 +96,12 @@ def run_playbook():
         else:
             # 오류 메시지 로그 파일에 기록
             with open(log_file_path, 'a') as log_file:
-                log_file.write(f"{datetime.datetime.now()} - ERROR - Playbook execution failed: {result.stderr}\n")
+                log_file.write(f"{datetime.now()} - ERROR - Playbook execution failed: {result.stderr}\n")
             return jsonify({"error": "Playbook execution failed", "details": result.stderr}), 500
     except Exception as e:
         # 예외 메시지 로그 파일에 기록
         with open(log_file_path, 'a') as log_file:
-            log_file.write(f"{datetime.datetime.now()} - ERROR - An error occurred: {str(e)}\n")
+            log_file.write(f"{datetime.now()} - ERROR - An error occurred: {str(e)}\n")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
