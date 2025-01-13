@@ -2,7 +2,7 @@ import boto3
 import json
 import subprocess
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from flask import Flask, request, jsonify
 
 # AWS 리전 설정
@@ -29,12 +29,14 @@ def get_autoscaling_instances_by_group(group_name):
             }
         }
 
-        time_threshold = datetime.now(timezone.utc)- datetime.timedelta(minutes=5)
-
+        time_threshold = datetime.now(timezone.utc)- timedelta(minutes=5)
+        
         for reservation in as_instances['Reservations']:
             for instance in reservation['Instances']:
                 # LaunchTime 가져오기
                 launch_time = instance.get('LaunchTime')
+                
+                # LaunchTime이 5분 이내이면 인벤토리에 추가
                 if launch_time and launch_time > time_threshold:
                     private_ip = instance.get('PrivateIpAddress')
                     if private_ip:
@@ -42,6 +44,15 @@ def get_autoscaling_instances_by_group(group_name):
                         inventory["_meta"]["hostvars"][private_ip] = {
                             "ansible_host": private_ip
                         }
+
+        #for reservation in as_instances['Reservations']:
+        #    for instance in reservation['Instances']:
+        #        private_ip = instance.get('PrivateIpAddress')
+        #        if private_ip:
+        #            inventory[group_name]["hosts"][private_ip] = {}
+        #            inventory["_meta"]["hostvars"][private_ip] = {
+        #                "ansible_host": private_ip
+        #            }
 
         # 디버깅 출력: 변환된 결과 확인
         print("Generated inventory:", json.dumps(inventory, indent=2))            
@@ -92,15 +103,6 @@ def run_playbook():
         with open(log_file_path, 'a') as log_file:
             log_file.write(f"{datetime.datetime.now()} - ERROR - An error occurred: {str(e)}\n")
         return jsonify({"error": str(e)}), 500
-
-    #try:
-    #    result = subprocess.run(command, capture_output=True, text=True)
-    #    if result.returncode == 0:
-    #        return jsonify({"message": "Playbook executed successfully", "output": result.stdout}), 200
-    #    else:
-    #        return jsonify({"error": "Playbook execution failed", "details": result.stderr}), 500
-    #except Exception as e:
-    #    return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
