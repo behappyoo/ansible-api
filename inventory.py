@@ -45,15 +45,6 @@ def get_autoscaling_instances_by_group(group_name):
                             "ansible_host": private_ip
                         }
 
-        #for reservation in as_instances['Reservations']:
-        #    for instance in reservation['Instances']:
-        #        private_ip = instance.get('PrivateIpAddress')
-        #        if private_ip:
-        #            inventory[group_name]["hosts"][private_ip] = {}
-        #            inventory["_meta"]["hostvars"][private_ip] = {
-        #                "ansible_host": private_ip
-        #            }
-
         # 디버깅 출력: 변환된 결과 확인
         print("Generated inventory:", json.dumps(inventory, indent=2))            
 
