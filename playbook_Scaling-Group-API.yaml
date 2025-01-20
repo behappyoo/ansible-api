@@ -4,7 +4,7 @@
   become: yes 
   vars:
     app_directory: "/home/{{ apiserveruser }}/apiserver"
-    git_repo: "https://{{ github_token }}@github.com/behappyoo/sampleapp-api"  
+    git_repo: "https://github.com/behappyoo/sampleapp-api"  
   vars_files:
     - vault.yml 
   tasks:
