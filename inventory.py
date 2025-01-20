@@ -8,7 +8,6 @@ from flask import Flask, request, jsonify
 # AWS 리전 설정
 region = 'ap-northeast-2'
 
-# Flask 설정
 app = Flask(__name__)
 
 def get_autoscaling_instances_by_group(group_name):

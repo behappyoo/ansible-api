@@ -10,7 +10,7 @@
   tasks:
     - name: Create a new user
       user:
-        name: "{{ webserveruser }}" #vault
+        name: "{{ webserveruser }}" 
         password: "{{ 'webserveruser_password' | password_hash('sha512') }}"
         shell: /bin/bash
         state: present
@@ -50,7 +50,7 @@
             group: "{{ webserveruser }}"
             mode: '0700'
 
-        - name: Clone the API server code from GitHub  # GitHub에서 코드를 클론합니다.
+        - name: Clone the API server code from GitHub
           git:
             repo: "{{ git_repo }}"
             dest: "{{ app_directory }}"
@@ -86,6 +86,3 @@
             chdir: "{{ app_directory }}"
           async: 10  # 최대 10초 동안 실행
           poll: 0    # 즉시 다음 작업으로 넘어감
-
-    - name: Remove sudo privileges from ec2-user
-      command: deluser ec2-user sudo
