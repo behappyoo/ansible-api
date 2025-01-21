@@ -101,6 +101,3 @@
             chdir: "{{ app_directory }}"
           async: 10  # 최대 10초 동안 실행
           poll: 0    # 즉시 다음 작업으로 넘어감
-
-    - name: Remove sudo privileges from ec2-user
-      command: deluser ec2-user sudo
